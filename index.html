@@ -399,15 +399,18 @@
   /* ---------- Auswertung ---------- */
   function evalMatch(id) {
     var sets = getSets(id).sets, wa = 0, wj = 0, pa = 0, pj = 0, played = 0;
+    var a2 = 0, j2 = 0, both2 = true;
     for (var s = 0; s < 3; s++) {
       var a = sets[s][0], j = sets[s][1];
-      if (a === null || j === null) continue;
+      if (a === null || j === null) { if (s < 2) both2 = false; continue; }
       pa += a; pj += j; played++;
-      if (a > j) wa++; else if (j > a) wj++;
+      if (a > j) { wa++; if (s < 2) a2++; }
+      else if (j > a) { wj++; if (s < 2) j2++; }
     }
     var winner = wa >= 2 ? 'a' : (wj >= 2 ? 'j' : null);
+    /* Satz 3 haengt nur an den ersten beiden Saetzen, nicht am Ergebnis von Satz 3 selbst */
     return { wa: wa, wj: wj, pa: pa, pj: pj, winner: winner, played: played,
-             thirdNeeded: sets[0][0] !== null && sets[0][1] !== null && sets[1][0] !== null && sets[1][1] !== null && wa === 1 && wj === 1 };
+             thirdNeeded: both2 && a2 === 1 && j2 === 1 };
   }
   function stats() {
     var rows = [], k;
@@ -506,8 +509,16 @@
       });
     });
 
+    var stray = false;
     for (var r = 1; r <= 4; r++) for (var i = 0; i < 4; i++) {
-      var id = mid(r, i), pr = PAIRINGS[r - 1][i], e = evalMatch(id), rec = getSets(id);
+      var id = mid(r, i), pr = PAIRINGS[r - 1][i], rec = getSets(id), e = evalMatch(id);
+      /* Satz 3 nur bei 1:1 - sonst verwaiste Werte entfernen */
+      if (!e.thirdNeeded && (rec.sets[2][0] !== null || rec.sets[2][1] !== null)) {
+        rec.sets[2] = [null, null];
+        rec.t = Date.now();
+        e = evalMatch(id);
+        stray = true;
+      }
       document.getElementById('na-' + id).textContent = pairLabel('alt', pr[0]);
       document.getElementById('nj-' + id).textContent = pairLabel('jung', pr[1]);
       document.getElementById('na-' + id).classList.toggle('win', e.winner === 'a');
@@ -532,6 +543,8 @@
         }
       }
     }
+
+    if (stray) setTimeout(push, 50);
 
     var st = stats();
     document.getElementById('winsA').textContent = st.teamA.w;
