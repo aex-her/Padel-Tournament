@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B2545">
+<title>Padel Cup – Alt gegen Jung</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body style="margin:0;background:#0B2545">
+<div id="root">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap');
+
+#root {
+  --turf: #0B2545;
+  --turf-2: #13345E;
+  --turf-3: #1D4576;
+  --line: #F4F7FB;
+  --line-dim: rgba(244, 247, 251, 0.58);
+  --line-faint: rgba(244, 247, 251, 0.18);
+  --alt: #EF3340;
+  --jung: #E9B96B;
+  --warn: #FF7A59;
+
+  background: var(--turf);
+  color: var(--line);
+  font-family: 'Barlow', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+  margin: 0;
+  padding: 0 0 48px;
+  min-height: 100vh;
+  -webkit-text-size-adjust: 100%;
+}
+#root * { box-sizing: border-box; }
+#root .wrap { max-width: 720px; margin: 0 auto; padding: 0 14px; }
+
+/* ---------- Kopf / Live-Stand ---------- */
+#root .brand { display: inline-flex; align-items: center; gap: 8px; }
+#root .brand img { width: 26px; height: 26px; border-radius: 5px; background: #fff; display: block; }
+#root .hero {
+  padding: 18px 0 14px;
+  border-bottom: 1px solid var(--line-faint);
+  margin-bottom: 14px;
+}
+#root .kicker {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; letter-spacing: .06em;
+  color: var(--line-dim);
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+#root .scoreline {
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  align-items: center; gap: 10px; margin-top: 6px;
+}
+#root .side { display: flex; flex-direction: column; }
+#root .side.j { align-items: flex-end; }
+#root .side-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 26px; font-weight: 700; line-height: 1;
+}
+#root .side.a .side-name { color: var(--alt); }
+#root .side.j .side-name { color: var(--jung); }
+#root .side-sub { font-size: 13px; color: var(--line-dim); margin-top: 3px; }
+#root .bignum {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 62px; font-weight: 700; line-height: .9;
+  font-variant-numeric: tabular-nums;
+}
+#root .side.a .bignum { color: var(--alt); }
+#root .side.j .bignum { color: var(--jung); }
+#root .vs { font-family: 'Barlow Condensed', sans-serif; font-size: 30px; color: var(--line-dim); }
+#root .prog { height: 5px; background: var(--line-faint); border-radius: 3px; margin-top: 12px; overflow: hidden; display: flex; }
+#root .verdict {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 19px; font-weight: 600;
+  margin-top: 10px; text-align: center; color: var(--line-dim);
+}
+#root .verdict.final { font-size: 24px; color: var(--line); }
+#root .verdict b.a { color: var(--alt); }
+#root .verdict b.j { color: var(--jung); }
+#root .prog i { display: block; height: 100%; }
+#root .prog .pa { background: var(--alt); }
+#root .prog .pj { background: var(--jung); }
+
+/* ---------- Timer ---------- */
+#root .timer {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: var(--turf-2); border: 1px solid var(--line-faint);
+  border-radius: 10px; padding: 10px 12px; margin-bottom: 14px;
+}
+#root .clock {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; min-width: 108px;
+}
+#root .clock.low { color: var(--warn); }
+#root .timer-meta { font-size: 13px; color: var(--line-dim); flex: 1 1 120px; }
+#root .timer-btns { display: flex; gap: 8px; }
+
+#root button {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 600;
+  letter-spacing: .02em; color: var(--line);
+  background: transparent; border: 1px solid var(--line-dim);
+  border-radius: 8px; padding: 8px 14px; cursor: pointer; min-height: 40px;
+}
+#root button:hover { background: var(--turf-3); }
+#root button.solid { background: var(--line); color: var(--turf); border-color: var(--line); }
+#root button.solid:hover { opacity: .88; }
+#root button.ghost { border-color: var(--line-faint); color: var(--line-dim); }
+#root :focus-visible { outline: 2px solid var(--jung); outline-offset: 2px; }
+
+/* ---------- Tabs ---------- */
+#root .tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+#root .tabs button { flex: 1; border-color: var(--line-faint); color: var(--line-dim); }
+#root .tabs button[aria-selected="true"] { background: var(--line); color: var(--turf); border-color: var(--line); }
+
+/* ---------- Runden & Matches ---------- */
+#root .round-head {
+  display: flex; align-items: baseline; gap: 10px;
+  margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line-faint);
+}
+#root .round-head h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; margin: 0; }
+#root .round-head span { font-size: 13px; color: var(--line-dim); }
+
+#root .match {
+  background: var(--turf-2); border: 1px solid var(--line-faint);
+  border-radius: 10px; padding: 12px; margin-bottom: 10px;
+}
+#root .match.done { border-color: var(--line-dim); }
+#root .court {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 14px;
+  letter-spacing: .08em; color: var(--line-dim); margin-bottom: 8px;
+  display: flex; justify-content: space-between;
+}
+#root .court b { color: var(--line); font-weight: 600; }
+
+#root .teams { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; }
+#root .tname {
+  font-size: 15px; font-weight: 500; padding: 3px 8px; border-radius: 6px;
+  border-left: 3px solid transparent; line-height: 1.3;
+}
+#root .tname.a { border-left-color: var(--alt); }
+#root .tname.j { border-left-color: var(--jung); }
+#root .tname.win { font-weight: 600; }
+#root .tname.win.a { background: rgba(239,51,64,.20); }
+#root .tname.win.j { background: rgba(233,185,107,.18); }
+#root .tsets {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 700;
+  font-variant-numeric: tabular-nums; text-align: right; min-width: 22px;
+}
+
+#root .sets { margin-top: 10px; border-top: 1px solid var(--line-faint); padding-top: 10px; display: flex; gap: 8px; }
+#root .setcol { flex: 1; }
+#root .setcol.off { opacity: .35; }
+#root .setlab {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 13px;
+  color: var(--line-dim); margin-bottom: 4px; text-align: center;
+}
+#root .setin { display: flex; align-items: center; gap: 4px; justify-content: center; }
+#root .setin input {
+  width: 100%; max-width: 52px; text-align: center;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  background: var(--turf); color: var(--line);
+  border: 1px solid var(--line-faint); border-radius: 7px;
+  padding: 7px 2px; -moz-appearance: textfield;
+}
+#root .setin input::-webkit-outer-spin-button,
+#root .setin input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+#root .setin input:disabled { cursor: not-allowed; }
+#root .setin input.lead-a { border-color: var(--alt); color: var(--alt); }
+#root .setin input.lead-j { border-color: var(--jung); color: var(--jung); }
+#root .setin span { color: var(--line-dim); }
+
+/* ---------- Tabelle ---------- */
+#root table { width: 100%; border-collapse: collapse; font-size: 15px; }
+#root th {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 14px;
+  color: var(--line-dim); text-align: right; padding: 6px 4px;
+  border-bottom: 1px solid var(--line-faint);
+}
+#root th:first-child, #root td:first-child { text-align: left; }
+#root td { padding: 8px 4px; text-align: right; border-bottom: 1px solid var(--line-faint); font-variant-numeric: tabular-nums; }
+#root td.pair { display: flex; align-items: center; gap: 8px; }
+#root .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+#root .dot.a { background: var(--alt); }
+#root .dot.j { background: var(--jung); }
+
+/* ---------- Setup ---------- */
+#root .setup-grid { display: grid; gap: 10px; }
+#root .pairrow {
+  background: var(--turf-2); border: 1px solid var(--line-faint);
+  border-radius: 10px; padding: 10px 12px;
+  display: grid; grid-template-columns: 34px 1fr 1fr; gap: 8px; align-items: center;
+}
+#root .pairtag {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 17px;
+}
+#root .pairtag.a { color: var(--alt); }
+#root .pairtag.j { color: var(--jung); }
+#root .pairrow input {
+  width: 100%; font-family: 'Barlow', sans-serif; font-size: 15px;
+  background: var(--turf); color: var(--line);
+  border: 1px solid var(--line-faint); border-radius: 7px; padding: 9px 10px;
+}
+#root .pairrow input::placeholder { color: rgba(244,247,251,.32); }
+
+#root .note { font-size: 13px; color: var(--line-dim); margin: 6px 0 18px; }
+#root .rules { background: var(--turf-2); border: 1px solid var(--line-faint); border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+#root .rules h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; margin: 0 0 6px; }
+#root .rules li { margin-bottom: 4px; }
+#root .rules ul { padding-left: 18px; margin: 0; }
+
+#root .sync { font-size: 12px; color: var(--line-dim); display: flex; align-items: center; gap: 6px; }
+#root .sync i { width: 7px; height: 7px; border-radius: 50%; background: #6BD08A; display: block; }
+#root .sync.err i { background: var(--warn); }
+#root .hide { display: none; }
+@media (max-width: 420px) {
+  #root .pairrow { grid-template-columns: 30px 1fr; }
+  #root .bignum { font-size: 52px; }
+}
+</style>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="kicker">
+      <span class="brand"><img src="data:image/jpeg;base64,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" alt="H2Ku"> Padel Cup · Alt gegen Jung</span>
+      <span class="sync" id="sync"><i></i><span id="syncTxt">verbunden</span></span>
+    </div>
+    <div class="scoreline">
+      <div class="side a">
+        <div class="side-name">Alt</div>
+        <div class="bignum" id="winsA">0</div>
+        <div class="side-sub" id="subA">0 Sätze</div>
+      </div>
+      <div class="vs">:</div>
+      <div class="side j">
+        <div class="side-name">Jung</div>
+        <div class="bignum" id="winsJ">0</div>
+        <div class="side-sub" id="subJ">0 Sätze</div>
+      </div>
+    </div>
+    <div class="prog"><i class="pa" id="progA"></i><i class="pj" id="progJ"></i></div>
+    <div class="verdict" id="verdict">Noch kein Spiel gewertet</div>
+  </div>
+
+  <div class="timer">
+    <div class="clock" id="clock">22:00</div>
+    <div class="timer-meta" id="timerMeta">Runde 1 · 22 Min</div>
+    <div class="timer-btns">
+      <button id="btnStart" class="solid">Start</button>
+      <button id="btnReset" class="ghost">Reset</button>
+      <button id="btnNext">Runde +1</button>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" data-tab="plan" aria-selected="true">Spielplan</button>
+    <button role="tab" data-tab="tabelle" aria-selected="false">Tabelle</button>
+    <button role="tab" data-tab="teams" aria-selected="false">Teams</button>
+  </div>
+
+  <div id="tab-plan"></div>
+
+  <div id="tab-tabelle" class="hide">
+    <div class="round-head"><h2>Paare</h2><span>16 Spiele, jedes Paar spielt 4×</span></div>
+    <table>
+      <thead><tr><th>Paar</th><th>Sp</th><th>S</th><th>Sätze</th><th>Punkte</th></tr></thead>
+      <tbody id="tblBody"></tbody>
+    </table>
+    <p class="note">Sp = gespielte Spiele, S = gewonnene Spiele. Sätze und Punkte jeweils gewonnen : verloren.</p>
+    <div class="rules">
+      <h3>Spielregeln</h3>
+      <ul>
+        <li>Best of 3 – wer zuerst zwei Sätze holt, gewinnt.</li>
+        <li>Ein Satz geht auf 8 Punkte, jeder Ballwechsel zählt. Bei 7:7 entscheidet der nächste Punkt.</li>
+        <li>Ertönt das Rundensignal mittendrin, gewinnt der Satz, wer gerade führt.</li>
+        <li>Aufschlag wechselt nach jedem Satz, Seitenwechsel nach jedem Satz.</li>
+        <li>Gesamtsieger ist das Team mit mehr gewonnenen Spielen. Bei 8:8 entscheiden die Sätze, danach die Punkte.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="tab-teams" class="hide">
+    <div class="round-head"><h2>Team Alt</h2><span>4 Paare</span></div>
+    <div class="setup-grid" id="setupAlt"></div>
+    <div class="round-head"><h2>Team Jung</h2><span>4 Paare</span></div>
+    <div class="setup-grid" id="setupJung"></div>
+    <p class="note">Namen werden sofort mit allen geteilt, die den Link haben – ebenso alle Ergebnisse.</p>
+
+    <div class="round-head"><h2>Verbindung</h2><span>Link zum Teilen</span></div>
+    <div class="rules">
+      <p id="roomState" style="margin:0 0 10px">Turnier wird angelegt …</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="btnCopy" class="solid">Link kopieren</button>
+        <button id="btnManual" class="ghost">Sync-ID eingeben</button>
+      </div>
+      <div id="manualBox" class="hide" style="margin-top:10px">
+        <p style="margin:0 0 6px;font-size:13px;color:var(--line-dim)">
+          Lege auf jsonblob.com einen Blob mit dem Inhalt <code>{}</code> an und trage die ID aus der Adresszeile hier ein.
+        </p>
+        <div style="display:flex;gap:8px">
+          <input id="manualId" placeholder="z. B. 1234567890123456789" style="flex:1;background:var(--turf);color:var(--line);border:1px solid var(--line-faint);border-radius:7px;padding:9px 10px;font-size:15px">
+          <button id="btnManualSave">Übernehmen</button>
+        </div>
+      </div>
+    </div>
+    <p class="note">Alle, die den Link öffnen, sehen und bearbeiten dieselben Daten – ohne Konto, ohne Installation.</p>
+    <button id="btnClear" class="ghost">Alle Ergebnisse löschen</button>
+  </div>
+</div>
+</div>
+
+<script>
+(function () {
+  var COURTS = ['Oslo', 'Paris', 'London', 'Miami'];
+  var PAIRINGS = [
+    [[0,0],[1,1],[2,2],[3,3]],
+    [[0,1],[1,0],[2,3],[3,2]],
+    [[0,2],[1,3],[2,0],[3,1]],
+    [[0,3],[1,2],[2,1],[3,0]]
+  ];
+  var ROUND_SEC = 22 * 60;
+
+  function blankPairs() {
+    var a = [], j = [];
+    for (var i = 0; i < 4; i++) { a.push({ p1: '', p2: '' }); j.push({ p1: '', p2: '' }); }
+    return { alt: a, jung: j, t: 0 };
+  }
+  var state = {
+    pairs: blankPairs(),
+    scores: {},
+    timer: { running: false, endsAt: 0, remaining: ROUND_SEC, round: 1, t: 0 }
+  };
+
+  var mid = function (r, i) { return 'r' + r + 'm' + i; };
+  function getSets(id) {
+    if (!state.scores[id]) state.scores[id] = { sets: [[null,null],[null,null],[null,null]], t: 0 };
+    return state.scores[id];
+  }
+  function pairLabel(side, idx) {
+    var p = state.pairs[side][idx];
+    var tag = (side === 'alt' ? 'A' : 'J') + (idx + 1);
+    var n = [p.p1, p.p2].filter(function (x) { return x && x.trim(); }).join(' & ');
+    return n ? n : 'Paar ' + tag;
+  }
+
+  /* ---------- Auswertung ---------- */
+  function evalMatch(id) {
+    var sets = getSets(id).sets, wa = 0, wj = 0, pa = 0, pj = 0, played = 0;
+    for (var s = 0; s < 3; s++) {
+      var a = sets[s][0], j = sets[s][1];
+      if (a === null || j === null) continue;
+      pa += a; pj += j; played++;
+      if (a > j) wa++; else if (j > a) wj++;
+    }
+    var winner = wa >= 2 ? 'a' : (wj >= 2 ? 'j' : null);
+    return { wa: wa, wj: wj, pa: pa, pj: pj, winner: winner, played: played,
+             thirdNeeded: sets[0][0] !== null && sets[0][1] !== null && sets[1][0] !== null && sets[1][1] !== null && wa === 1 && wj === 1 };
+  }
+  function stats() {
+    var rows = [], k;
+    for (k = 0; k < 4; k++) rows.push({ side: 'alt', idx: k, sp: 0, w: 0, sw: 0, sl: 0, pf: 0, pa: 0 });
+    for (k = 0; k < 4; k++) rows.push({ side: 'jung', idx: k, sp: 0, w: 0, sw: 0, sl: 0, pf: 0, pa: 0 });
+    var find = function (side, idx) { return rows[(side === 'alt' ? 0 : 4) + idx]; };
+    var teamA = { w: 0, s: 0, p: 0 }, teamJ = { w: 0, s: 0, p: 0 }, done = 0;
+    for (var r = 0; r < 4; r++) for (var i = 0; i < 4; i++) {
+      var pr = PAIRINGS[r][i], e = evalMatch(mid(r + 1, i));
+      var A = find('alt', pr[0]), J = find('jung', pr[1]);
+      A.sw += e.wa; A.sl += e.wj; A.pf += e.pa; A.pa += e.pj;
+      J.sw += e.wj; J.sl += e.wa; J.pf += e.pj; J.pa += e.pa;
+      teamA.s += e.wa; teamJ.s += e.wj; teamA.p += e.pa; teamJ.p += e.pj;
+      if (e.winner) {
+        done++; A.sp++; J.sp++;
+        if (e.winner === 'a') { A.w++; teamA.w++; } else { J.w++; teamJ.w++; }
+      }
+    }
+    return { rows: rows, teamA: teamA, teamJ: teamJ, done: done };
+  }
+
+  /* ---------- Spielplan bauen ---------- */
+  var plan = document.getElementById('tab-plan');
+  function buildPlan() {
+    var html = '';
+    for (var r = 1; r <= 4; r++) {
+      html += '<div class="round-head"><h2>Runde ' + r + '</h2><span>4 Spiele gleichzeitig</span></div>';
+      for (var i = 0; i < 4; i++) {
+        var id = mid(r, i);
+        html += '<div class="match" id="c-' + id + '">' +
+          '<div class="court"><span>Court <b>' + COURTS[i] + '</b></span><span id="st-' + id + '"></span></div>' +
+          '<div class="teams">' +
+            '<div class="tname a" id="na-' + id + '"></div><div class="tsets" id="sa-' + id + '">0</div>' +
+            '<div class="tname j" id="nj-' + id + '"></div><div class="tsets" id="sj-' + id + '">0</div>' +
+          '</div><div class="sets">';
+        for (var s = 0; s < 3; s++) {
+          html += '<div class="setcol" id="sc-' + id + '-' + s + '">' +
+            '<div class="setlab">Satz ' + (s + 1) + '</div>' +
+            '<div class="setin">' +
+              '<input type="number" inputmode="numeric" min="0" max="30" aria-label="Satz ' + (s + 1) + ' Alt" data-m="' + id + '" data-s="' + s + '" data-side="0">' +
+              '<span>:</span>' +
+              '<input type="number" inputmode="numeric" min="0" max="30" aria-label="Satz ' + (s + 1) + ' Jung" data-m="' + id + '" data-s="' + s + '" data-side="1">' +
+            '</div></div>';
+        }
+        html += '</div></div>';
+      }
+    }
+    plan.innerHTML = html;
+    plan.addEventListener('input', function (ev) {
+      var el = ev.target;
+      if (el.tagName !== 'INPUT') return;
+      var v = el.value === '' ? null : Math.max(0, Math.min(30, parseInt(el.value, 10)));
+      if (v !== null && isNaN(v)) v = null;
+      var rec = getSets(el.dataset.m);
+      rec.sets[+el.dataset.s][+el.dataset.side] = v;
+      rec.t = Date.now();
+      refresh(); push();
+    });
+  }
+
+  /* ---------- Setup bauen ---------- */
+  function buildSetup() {
+    ['alt', 'jung'].forEach(function (side) {
+      var box = document.getElementById(side === 'alt' ? 'setupAlt' : 'setupJung'), h = '';
+      for (var i = 0; i < 4; i++) {
+        var tag = (side === 'alt' ? 'A' : 'J') + (i + 1);
+        h += '<div class="pairrow"><div class="pairtag ' + (side === 'alt' ? 'a' : 'j') + '">' + tag + '</div>' +
+          '<input placeholder="Spieler 1" aria-label="' + tag + ' Spieler 1" data-side="' + side + '" data-i="' + i + '" data-p="p1">' +
+          '<input placeholder="Spieler 2" aria-label="' + tag + ' Spieler 2" data-side="' + side + '" data-i="' + i + '" data-p="p2"></div>';
+      }
+      box.innerHTML = h;
+      box.addEventListener('input', function (ev) {
+        var el = ev.target;
+        if (el.tagName !== 'INPUT') return;
+        state.pairs[el.dataset.side][+el.dataset.i][el.dataset.p] = el.value;
+        state.pairs.t = Date.now();
+        refresh(); push();
+      });
+    });
+  }
+
+  /* ---------- Anzeige aktualisieren ---------- */
+  function setVal(el, v) {
+    if (!el || el === document.activeElement) return;
+    var t = v === null || v === undefined ? '' : String(v);
+    if (el.value !== t) el.value = t;
+  }
+  function refresh() {
+    ['alt', 'jung'].forEach(function (side) {
+      var box = document.getElementById(side === 'alt' ? 'setupAlt' : 'setupJung');
+      Array.prototype.forEach.call(box.querySelectorAll('input'), function (el) {
+        setVal(el, state.pairs[el.dataset.side][+el.dataset.i][el.dataset.p]);
+      });
+    });
+
+    for (var r = 1; r <= 4; r++) for (var i = 0; i < 4; i++) {
+      var id = mid(r, i), pr = PAIRINGS[r - 1][i], e = evalMatch(id), rec = getSets(id);
+      document.getElementById('na-' + id).textContent = pairLabel('alt', pr[0]);
+      document.getElementById('nj-' + id).textContent = pairLabel('jung', pr[1]);
+      document.getElementById('na-' + id).classList.toggle('win', e.winner === 'a');
+      document.getElementById('nj-' + id).classList.toggle('win', e.winner === 'j');
+      document.getElementById('sa-' + id).textContent = e.wa;
+      document.getElementById('sj-' + id).textContent = e.wj;
+      document.getElementById('c-' + id).classList.toggle('done', !!e.winner);
+      document.getElementById('st-' + id).textContent =
+        e.winner ? (e.winner === 'a' ? 'Alt gewinnt' : 'Jung gewinnt') : (e.played ? 'läuft' : '');
+
+      for (var s = 0; s < 3; s++) {
+        var col = document.getElementById('sc-' + id + '-' + s);
+        var off = s === 2 && !e.thirdNeeded;
+        col.classList.toggle('off', off);
+        var ins = col.querySelectorAll('input');
+        for (var k = 0; k < 2; k++) {
+          ins[k].disabled = off;
+          setVal(ins[k], rec.sets[s][k]);
+          var a = rec.sets[s][0], j = rec.sets[s][1], cls = '';
+          if (a !== null && j !== null && a !== j) cls = (a > j) === (k === 0) ? (k === 0 ? 'lead-a' : 'lead-j') : '';
+          ins[k].className = cls;
+        }
+      }
+    }
+
+    var st = stats();
+    document.getElementById('winsA').textContent = st.teamA.w;
+    document.getElementById('winsJ').textContent = st.teamJ.w;
+    document.getElementById('subA').textContent = st.teamA.s + ' Sätze · ' + st.teamA.p + ' Punkte';
+    document.getElementById('subJ').textContent = st.teamJ.s + ' Sätze · ' + st.teamJ.p + ' Punkte';
+    document.getElementById('progA').style.width = (st.teamA.w / 16 * 100) + '%';
+    document.getElementById('progJ').style.width = (st.teamJ.w / 16 * 100) + '%';
+
+    var A = st.teamA, J = st.teamJ, open = 16 - st.done, v = document.getElementById('verdict');
+    var lead = A.w !== J.w ? (A.w > J.w ? 'a' : 'j')
+             : A.s !== J.s ? (A.s > J.s ? 'a' : 'j')
+             : A.p !== J.p ? (A.p > J.p ? 'a' : 'j') : null;
+    var nameOf = function (s) { return '<b class="' + s + '">Team ' + (s === 'a' ? 'Alt' : 'Jung') + '</b>'; };
+    var why = A.w !== J.w ? '' : (A.s !== J.s ? ' nach Sätzen' : ' nach Punkten');
+    if (open === 16) v.innerHTML = 'Noch kein Spiel gewertet';
+    else if (open > 0) v.innerHTML = (lead ? nameOf(lead) + ' führt' + why : 'Gleichstand') + ' · noch ' + open + (open === 1 ? ' Spiel offen' : ' Spiele offen');
+    else v.innerHTML = lead ? nameOf(lead) + ' gewinnt den Padel Cup' + why : 'Unentschieden – Entscheidungsspiel';
+    v.classList.toggle('final', open === 0);
+
+    var sorted = st.rows.slice().sort(function (x, y) {
+      return y.w - x.w || (y.sw - y.sl) - (x.sw - x.sl) || (y.pf - y.pa) - (x.pf - x.pa);
+    });
+    document.getElementById('tblBody').innerHTML = sorted.map(function (p) {
+      return '<tr><td class="pair"><span class="dot ' + (p.side === 'alt' ? 'a' : 'j') + '"></span>' +
+        pairLabel(p.side, p.idx) + '</td><td>' + p.sp + '</td><td>' + p.w + '</td><td>' +
+        p.sw + ':' + p.sl + '</td><td>' + p.pf + ':' + p.pa + '</td></tr>';
+    }).join('');
+
+    document.getElementById('timerMeta').textContent = 'Runde ' + state.timer.round + ' · ' + Math.round(ROUND_SEC / 60) + ' Min pro Runde';
+    document.getElementById('btnStart').textContent = state.timer.running ? 'Pause' : 'Start';
+  }
+
+  /* ---------- Timer ---------- */
+  function remaining() {
+    var t = state.timer;
+    return t.running ? Math.max(0, Math.round((t.endsAt - Date.now()) / 1000)) : t.remaining;
+  }
+  function tick() {
+    var s = remaining(), el = document.getElementById('clock');
+    el.textContent = Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
+    el.classList.toggle('low', s <= 120);
+  }
+  document.getElementById('btnStart').onclick = function () {
+    var t = state.timer;
+    if (t.running) { t.remaining = remaining(); t.running = false; }
+    else { t.endsAt = Date.now() + remaining() * 1000; t.running = true; }
+    t.t = Date.now(); refresh(); tick(); push();
+  };
+  document.getElementById('btnReset').onclick = function () {
+    state.timer.running = false; state.timer.remaining = ROUND_SEC; state.timer.t = Date.now();
+    refresh(); tick(); push();
+  };
+  document.getElementById('btnNext').onclick = function () {
+    var t = state.timer;
+    t.round = t.round % 4 + 1; t.remaining = ROUND_SEC; t.endsAt = Date.now() + ROUND_SEC * 1000;
+    t.running = true; t.t = Date.now(); refresh(); tick(); push();
+  };
+
+  /* ---------- Tabs ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('.tabs button'), function (b) {
+    b.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.tabs button'), function (o) {
+        o.setAttribute('aria-selected', o === b ? 'true' : 'false');
+      });
+      ['plan', 'tabelle', 'teams'].forEach(function (n) {
+        document.getElementById('tab-' + n).classList.toggle('hide', n !== b.dataset.tab);
+      });
+    };
+  });
+
+  document.getElementById('btnClear').onclick = function () {
+    if (!confirm('Alle Satzergebnisse löschen? Namen bleiben erhalten.')) return;
+    var now = Date.now();
+    for (var r = 1; r <= 4; r++) for (var i = 0; i < 4; i++)
+      state.scores[mid(r, i)] = { sets: [[null,null],[null,null],[null,null]], t: now };
+    refresh(); push();
+  };
+
+  /* ---------- Sync ---------- */
+  function merge(remote, local) {
+    if (!remote) return local;
+    var out = { pairs: local.pairs, scores: {}, timer: local.timer };
+    if ((remote.pairs && remote.pairs.t || 0) > (local.pairs.t || 0)) out.pairs = remote.pairs;
+    if ((remote.timer && remote.timer.t || 0) > (local.timer.t || 0)) out.timer = remote.timer;
+    var ids = {}, k;
+    for (k in local.scores) ids[k] = 1;
+    for (k in (remote.scores || {})) ids[k] = 1;
+    for (k in ids) {
+      var l = local.scores[k], rm = (remote.scores || {})[k];
+      out.scores[k] = (!l || (rm && (rm.t || 0) > (l.t || 0))) ? rm : l;
+    }
+    return out;
+  }
+  function mark(ok, msg) {
+    var el = document.getElementById('sync');
+    el.classList.toggle('err', !ok);
+    document.getElementById('syncTxt').textContent = msg;
+  }
+  /* --- Raum (jsonblob) --- */
+  var API = 'https://jsonblob.com/api/jsonBlob/';
+  var room = null, busy = false, pending = false, fails = 0;
+
+  function readRoomFromUrl() {
+    var m = /[#&?]t=([A-Za-z0-9]+)/.exec(location.hash + location.search);
+    return m ? m[1] : null;
+  }
+  function shareUrl() {
+    return location.origin + location.pathname + '#t=' + room;
+  }
+  function showRoom() {
+    var el = document.getElementById('roomState');
+    if (room) {
+      el.innerHTML = 'Turnier läuft unter <code>' + room + '</code>. Teile diesen Link:<br>' +
+        '<span style="word-break:break-all;color:var(--jung)">' + shareUrl() + '</span>';
+    } else {
+      el.textContent = 'Kein Turnier verbunden – die App speichert nur auf diesem Gerät.';
+    }
+  }
+  function setRoom(id) {
+    room = id;
+    try { history.replaceState(null, '', '#t=' + id); } catch (e) { location.hash = 't=' + id; }
+    showRoom();
+    localStorage.setItem('padelcup:last', id);
+  }
+
+  async function createRoom() {
+    try {
+      var res = await fetch('https://jsonblob.com/api/jsonBlob', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(state)
+      });
+      var loc = res.headers.get('Location') || res.headers.get('location');
+      if (!loc) throw new Error('keine ID');
+      setRoom(loc.split('/').pop());
+      mark(true, 'live');
+    } catch (e) {
+      mark(false, 'nur lokal – Sync-ID nötig');
+      showRoom();
+      document.getElementById('manualBox').classList.remove('hide');
+    }
+  }
+
+  function mark(ok, msg) {
+    var el = document.getElementById('sync');
+    el.classList.toggle('err', !ok);
+    document.getElementById('syncTxt').textContent = msg;
+  }
+
+  function push() {
+    if (!room) return;
+    if (busy) { pending = true; return; }
+    busy = true;
+    (async function () {
+      try {
+        try {
+          var g = await fetch(API + room, { headers: { 'Accept': 'application/json' }, cache: 'no-store' });
+          if (g.ok) state = merge(await g.json(), state);
+        } catch (e) {}
+        var r = await fetch(API + room, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(state)
+        });
+        if (!r.ok) throw new Error(r.status);
+        fails = 0;
+        mark(true, 'gespeichert ' + new Date().toLocaleTimeString('de-DE').slice(0, 5));
+      } catch (e) {
+        fails++;
+        mark(false, 'nicht gespeichert');
+      }
+      busy = false;
+      if (pending) { pending = false; setTimeout(push, 400); }
+    })();
+  }
+
+  async function pull() {
+    if (!room || busy) return;
+    try {
+      var g = await fetch(API + room, { headers: { 'Accept': 'application/json' }, cache: 'no-store' });
+      if (!g.ok) throw new Error(g.status);
+      var before = JSON.stringify(state);
+      state = merge(await g.json(), state);
+      if (JSON.stringify(state) !== before) refresh();
+      fails = 0;
+      mark(true, 'live');
+    } catch (e) {
+      fails++;
+      if (fails > 2) mark(false, 'keine Verbindung');
+    }
+  }
+
+  document.getElementById('btnCopy').onclick = function () {
+    if (!room) { alert('Noch kein Turnier verbunden.'); return; }
+    var u = shareUrl();
+    if (navigator.clipboard) navigator.clipboard.writeText(u).then(function () {
+      document.getElementById('btnCopy').textContent = 'Kopiert';
+      setTimeout(function () { document.getElementById('btnCopy').textContent = 'Link kopieren'; }, 1500);
+    }); else prompt('Link kopieren:', u);
+  };
+  document.getElementById('btnManual').onclick = function () {
+    document.getElementById('manualBox').classList.toggle('hide');
+  };
+  document.getElementById('btnManualSave').onclick = function () {
+    var v = document.getElementById('manualId').value.trim().split('/').pop();
+    if (!v) return;
+    setRoom(v); fails = 0; pull().then(refresh); push();
+  };
+
+  buildPlan(); buildSetup(); refresh(); tick();
+  var urlRoom = readRoomFromUrl();
+  if (urlRoom) { setRoom(urlRoom); pull().then(refresh); }
+  else { showRoom(); createRoom().then(function () { refresh(); }); }
+  setInterval(tick, 500);
+  setInterval(pull, 5000);
+})();
+</script>
+</body>
+</html>
