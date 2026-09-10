@@ -215,6 +215,13 @@
 #root .sync i { width: 7px; height: 7px; border-radius: 50%; background: #6BD08A; display: block; }
 #root .sync.err i { background: var(--warn); }
 #root .hide { display: none; }
+#root .robadge {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 12px; letter-spacing: .08em;
+  text-transform: uppercase; border: 1px solid var(--line-dim); border-radius: 999px;
+  padding: 1px 8px; margin-left: 8px; color: var(--line-dim);
+}
+#root .ro input { opacity: .75; }
+#root .ro input:disabled { cursor: default; }
 @media (max-width: 420px) {
   #root .pairrow { grid-template-columns: 30px 1fr; }
   #root .bignum { font-size: 52px; }
@@ -293,6 +300,7 @@
       <p id="roomState" style="margin:0 0 10px">Noch keine Datenbank verbunden.</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button id="btnCopy" class="solid">Link kopieren</button>
+        <button id="btnRo" class="ghost">Nur-Lesen-Link</button>
         <button id="btnManual" class="ghost">Datenbank verbinden</button>
       </div>
       <div id="manualBox" class="hide" style="margin-top:10px">
@@ -516,7 +524,7 @@
         col.classList.toggle('off', off);
         var ins = col.querySelectorAll('input');
         for (var k = 0; k < 2; k++) {
-          ins[k].disabled = off;
+          ins[k].disabled = off || readOnly;
           setVal(ins[k], rec.sets[s][k]);
           var a = rec.sets[s][0], j = rec.sets[s][1], cls = '';
           if (a !== null && j !== null && a !== j) cls = (a > j) === (k === 0) ? (k === 0 ? 'lead-a' : 'lead-j') : '';
@@ -618,6 +626,25 @@
     }
     return out;
   }
+  function applyReadOnly() {
+    if (!readOnly) return;
+    document.getElementById('root').classList.add('ro');
+    Array.prototype.forEach.call(document.querySelectorAll('#tab-plan input, #setupAlt input, #setupJung input, #manualId'),
+      function (el) { el.disabled = true; });
+    ['btnStart', 'btnReset', 'btnNext', 'btnClear', 'btnManual', 'btnRo'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.add('hide');
+    });
+    var mb = document.getElementById('manualBox');
+    if (mb) mb.classList.add('hide');
+    var k = document.querySelector('.brand');
+    if (k && !document.getElementById('roTag')) {
+      var b = document.createElement('span');
+      b.className = 'robadge'; b.id = 'roTag'; b.textContent = 'Nur Ansicht';
+      k.appendChild(b);
+    }
+  }
+
   function mark(ok, msg) {
     var el = document.getElementById('sync');
     el.classList.toggle('err', !ok);
@@ -625,6 +652,7 @@
   }
   /* --- Raum (Firebase Realtime Database) --- */
   var dbUrl = null, room = null, busy = false, pending = false, fails = 0;
+  var readOnly = /[#&?]ro=1/.test(location.hash + location.search);
 
   function param(name) {
     var m = new RegExp('[#&?]' + name + '=([^&]+)').exec(location.hash + location.search);
@@ -638,23 +666,49 @@
     for (var i = 0; i < 8; i++) o += c.charAt(Math.floor(Math.random() * c.length));
     return o;
   }
-  function shareUrl() {
-    return location.origin + location.pathname + '#db=' + encodeURIComponent(dbUrl) + '&t=' + room;
+  function shareUrl(ro) {
+    return location.origin + location.pathname + '#db=' + encodeURIComponent(dbUrl) + '&t=' + room + (ro ? '&ro=1' : '');
   }
   function writeHash() {
-    var h = '#db=' + encodeURIComponent(dbUrl) + '&t=' + room;
+    var h = '#db=' + encodeURIComponent(dbUrl) + '&t=' + room + (readOnly ? '&ro=1' : '');
     try { history.replaceState(null, '', h); } catch (e) { location.hash = h.slice(1); }
   }
   function showRoom() {
     var el = document.getElementById('roomState');
     if (dbUrl && room) {
-      el.innerHTML = 'Turnier <code>' + room + '</code> ist verbunden. Diesen Link teilen:<br>' +
-        '<span style="word-break:break-all;color:var(--jung)">' + shareUrl() + '</span>';
+      if (readOnly) {
+        el.innerHTML = 'Turnier <code>' + room + '</code> – Nur-Ansicht-Modus. Ergebnisse trägt der Court-Schreiber ein.';
+      } else {
+        el.innerHTML = 'Turnier <code>' + room + '</code> ist verbunden.<br>' +
+          '<b>Zum Eintragen (Court-Schreiber):</b><br>' +
+          '<span style="word-break:break-all;color:var(--jung)">' + shareUrl(false) + '</span><br><br>' +
+          '<b>Nur zum Zuschauen (alle anderen):</b><br>' +
+          '<span style="word-break:break-all;color:var(--alt)">' + shareUrl(true) + '</span>';
+      }
     } else {
       el.textContent = 'Noch keine Datenbank verbunden – die App speichert nur auf diesem Gerät.';
       document.getElementById('manualBox').classList.remove('hide');
     }
   }
+  function applyReadOnly() {
+    if (!readOnly) return;
+    document.getElementById('root').classList.add('ro');
+    Array.prototype.forEach.call(document.querySelectorAll('#tab-plan input, #setupAlt input, #setupJung input, #manualId'),
+      function (el) { el.disabled = true; });
+    ['btnStart', 'btnReset', 'btnNext', 'btnClear', 'btnManual', 'btnRo'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.add('hide');
+    });
+    var mb = document.getElementById('manualBox');
+    if (mb) mb.classList.add('hide');
+    var k = document.querySelector('.brand');
+    if (k && !document.getElementById('roTag')) {
+      var b = document.createElement('span');
+      b.className = 'robadge'; b.id = 'roTag'; b.textContent = 'Nur Ansicht';
+      k.appendChild(b);
+    }
+  }
+
   function mark(ok, msg) {
     var el = document.getElementById('sync');
     el.classList.toggle('err', !ok);
@@ -662,6 +716,7 @@
   }
 
   function push() {
+    if (readOnly) return;
     if (!dbUrl || !room) return;
     if (busy) { pending = true; return; }
     busy = true;
@@ -707,13 +762,21 @@
     }
   }
 
+  function copyTo(btnId, url, label) {
+    var btn = document.getElementById(btnId);
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () {
+      btn.textContent = 'Kopiert';
+      setTimeout(function () { btn.textContent = label; }, 1500);
+    }); else prompt('Link kopieren:', url);
+  }
+  document.getElementById('btnRo').onclick = function () {
+    if (!dbUrl || !room) { alert('Erst die Datenbank verbinden.'); return; }
+    copyTo('btnRo', shareUrl(true), 'Nur-Lesen-Link');
+  };
   document.getElementById('btnCopy').onclick = function () {
     if (!dbUrl || !room) { alert('Erst die Datenbank verbinden.'); return; }
-    var u = shareUrl();
-    if (navigator.clipboard) navigator.clipboard.writeText(u).then(function () {
-      document.getElementById('btnCopy').textContent = 'Kopiert';
-      setTimeout(function () { document.getElementById('btnCopy').textContent = 'Link kopieren'; }, 1500);
-    }); else prompt('Link kopieren:', u);
+    var u = shareUrl(false);
+    copyTo('btnCopy', u, 'Link kopieren');
   };
   document.getElementById('btnManual').onclick = function () {
     document.getElementById('manualBox').classList.toggle('hide');
@@ -728,7 +791,7 @@
     push();
   };
 
-  buildPlan(); buildSetup(); refresh(); tick();
+  buildPlan(); buildSetup(); applyReadOnly(); refresh(); tick();
   dbUrl = param('db') || localStorage.getItem('padelcup:db');
   room = param('t');
   if (dbUrl && room) { writeHash(); showRoom(); pull().then(refresh); }
