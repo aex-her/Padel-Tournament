@@ -334,9 +334,52 @@
   };
 
   var mid = function (r, i) { return 'r' + r + 'm' + i; };
+  function blankSets() { return [[null, null], [null, null], [null, null]]; }
+  function num(v) { return (v === undefined || v === null || v === '') ? null : (isNaN(+v) ? null : +v); }
+  function fixSets(src) {
+    var out = blankSets(), i, row;
+    if (src) for (i = 0; i < 3; i++) {
+      row = src[i];
+      if (!row) continue;
+      out[i][0] = num(row[0]);
+      out[i][1] = num(row[1]);
+    }
+    return out;
+  }
   function getSets(id) {
-    if (!state.scores[id]) state.scores[id] = { sets: [[null,null],[null,null],[null,null]], t: 0 };
-    return state.scores[id];
+    var r = state.scores[id];
+    if (!r || typeof r !== 'object') { r = { sets: blankSets(), t: 0 }; state.scores[id] = r; return r; }
+    if (!r.sets || !r.sets[0] || !r.sets[1] || !r.sets[2] ||
+        r.sets[0].length !== 2 || r.sets[1].length !== 2 || r.sets[2].length !== 2) {
+      r.sets = fixSets(r.sets);
+    }
+    return r;
+  }
+  /* Firebase speichert keine leeren Werte - eingehende Daten wieder auffuellen */
+  function normalize(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    var out = { pairs: null, scores: {}, timer: null }, k;
+    var p = raw.pairs || {};
+    var side = function (v) {
+      var arr = [], i, e;
+      for (i = 0; i < 4; i++) { e = (v && v[i]) || {}; arr.push({ p1: e.p1 || '', p2: e.p2 || '' }); }
+      return arr;
+    };
+    out.pairs = { alt: side(p.alt), jung: side(p.jung), t: p.t || 0 };
+    var sc = raw.scores || {};
+    for (k in sc) {
+      if (!sc[k]) continue;
+      out.scores[k] = { sets: fixSets(sc[k].sets), t: sc[k].t || 0 };
+    }
+    var tm = raw.timer || {};
+    out.timer = {
+      running: !!tm.running,
+      endsAt: tm.endsAt || 0,
+      remaining: (tm.remaining === undefined || tm.remaining === null) ? ROUND_SEC : tm.remaining,
+      round: tm.round || 1,
+      t: tm.t || 0
+    };
+    return out;
   }
   function pairLabel(side, idx) {
     var p = state.pairs[side][idx];
@@ -445,6 +488,9 @@
     if (el.value !== t) el.value = t;
   }
   function refresh() {
+    try { render(); } catch (e) { console.error(e); }
+  }
+  function render() {
     ['alt', 'jung'].forEach(function (side) {
       var box = document.getElementById(side === 'alt' ? 'setupAlt' : 'setupJung');
       Array.prototype.forEach.call(box.querySelectorAll('input'), function (el) {
@@ -623,7 +669,7 @@
       try {
         try {
           var g = await fetch(endpoint(), { cache: 'no-store' });
-          if (g.ok) { var rj = await g.json(); if (rj) state = merge(rj, state); }
+          if (g.ok) { var rj = normalize(await g.json()); if (rj) state = merge(rj, state); }
         } catch (e) {}
         var r = await fetch(endpoint(), {
           method: 'PUT',
@@ -647,7 +693,7 @@
     try {
       var g = await fetch(endpoint(), { cache: 'no-store' });
       if (!g.ok) throw new Error(g.status);
-      var rj = await g.json();
+      var rj = normalize(await g.json());
       if (rj) {
         var before = JSON.stringify(state);
         state = merge(rj, state);
@@ -694,4 +740,3 @@
 </script>
 </body>
 </html>
-
